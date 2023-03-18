@@ -13,9 +13,10 @@ import sys
 sys.path.append(str(sys.path[0][:-14]))
 dirname = os.getcwd()
 dirname = dirname.replace("", "")
-
+sys.path.insert(1, os.path.join(dirname, "methods"))
 from visualize import visualize_2D
 from GD import Gradient_Descent
+
 
 try:
     if sys.platform == "darwin": # macOS
@@ -27,13 +28,15 @@ except OSError as e:
 
 
 def main():
-    f = lambda x: pow(x, 4) 
-    df = lambda x:4 * pow(x, 3)
+    f = lambda x: pow(x, 2) 
+    df = lambda x: 2*x
 
     x_calc, y_calc = Gradient_Descent(guess = -9, \
-            learning_rate = 0.0001, f = f, df = df)
+            learning_rate = 0.1, f = f, df = df)
 
     visualize_2D(f, -10, 10, x_calc, y_calc)
+    clear()
 
 if __name__ == "__main__":
+    clear()
     main()
