@@ -27,8 +27,8 @@ except OSError as e:
 
 
 def main():
-    f = lambda x: x*x*x*x 
-    df = lambda x:4*x*x*x 
+    f = lambda x: pow(x, 4) 
+    df = lambda x:4 * pow(x, 3)
 
     x_calc, y_calc = Gradient_Descent(guess = -9, \
             learning_rate = 0.0001, f = f, df = df)
