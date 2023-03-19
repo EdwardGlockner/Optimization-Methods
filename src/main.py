@@ -12,10 +12,11 @@ import sys
 # Fixing path
 sys.path.append(str(sys.path[0][:-14]))
 dirname = os.getcwd()
-dirname = dirname.replace("", "")
+#dirname = dirname.replace("", "")
 sys.path.insert(1, os.path.join(dirname, "methods"))
 from visualize import visualize_2D
 from GD import Gradient_Descent
+from SGD import Stoch_Gradient_Descent
 
 
 try:
@@ -28,15 +29,19 @@ except OSError as e:
 
 
 def main():
-    f = lambda x: pow(x, 2) 
+    #f = lambda x: x**4 - 5*x**2 - 3*x
+    #df = lambda x: 4 * x**3 - 10 * x - 3
+
+    f = lambda x: x**2
     df = lambda x: 2*x
 
-    x_calc, y_calc = Gradient_Descent(guess = -9, \
-            learning_rate = 0.1, f = f, df = df)
+    x_calc, y_calc = Gradient_Descent(guess = 2.9, \
+            learning_rate = 0.9, f = f, df = df)
 
-    visualize_2D(f, -10, 10, x_calc, y_calc)
+    visualize_2D(f, -3, 3, x_calc, y_calc)
     clear()
 
 if __name__ == "__main__":
+
     clear()
     main()
