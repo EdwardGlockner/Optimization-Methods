@@ -32,8 +32,14 @@ def main():
     #f = lambda x: x**4 - 5*x**2 - 3*x
     #df = lambda x: 4 * x**3 - 10 * x - 3
 
-    f = lambda x: x**2
-    df = lambda x: 2*x
+    #f = lambda x: x**2
+    #df = lambda x: 2*x
+
+    equation = input("Enter function: ")
+    dequation = input("Enter gradient of function: ")
+    
+    f = lambda x: eval(equation)
+    df = lambda x: eval(dequation)
 
     x_calc, y_calc = Gradient_Descent(guess = 2.9, \
             learning_rate = 0.9, f = f, df = df)

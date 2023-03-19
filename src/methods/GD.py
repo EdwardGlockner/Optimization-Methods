@@ -49,7 +49,6 @@ def Gradient_Descent(guess, learning_rate, f, df, tolerance=1e-3, max_iters = 10
                 
         if np.abs(step) < tolerance:
             break
-
         x_new += step
 
     return x_calc, y_calc
