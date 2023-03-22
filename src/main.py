@@ -42,7 +42,9 @@ def main():
     df = lambda x: eval(dequation)
 
     x_calc, y_calc = Gradient_Descent(guess = 2.9, \
-            learning_rate = 0.9, f = f, df = df)
+            learning_rate = 0.01, f = f, df = df)
+    if x_calc is None or y_calc is None:
+        return False
 
     visualize_2D(f, -3, 3, x_calc, y_calc)
     clear()
