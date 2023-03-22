@@ -17,6 +17,7 @@ sys.path.insert(1, os.path.join(dirname, "methods"))
 from visualize import visualize_2D
 from GD import Gradient_Descent
 from SGD import Stoch_Gradient_Descent
+from derivative import derivative
 
 
 try:
@@ -29,17 +30,10 @@ except OSError as e:
 
 
 def main():
-    #f = lambda x: x**4 - 5*x**2 - 3*x
-    #df = lambda x: 4 * x**3 - 10 * x - 3
-
-    #f = lambda x: x**2
-    #df = lambda x: 2*x
-
     equation = input("Enter function: ")
-    dequation = input("Enter gradient of function: ")
     
     f = lambda x: eval(equation)
-    df = lambda x: eval(dequation)
+    df = lambda x: eval(derivative(equation))
 
     x_calc, y_calc = Gradient_Descent(guess = 2.9, \
             learning_rate = 0.01, f = f, df = df)
