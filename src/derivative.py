@@ -34,7 +34,7 @@ def derivative(func, symbol="x"):
             new_exp = int(exp)-1
             new_const = 0
             
-            new_term = str(new_koeff) + "*" + symbol +"**" + str(new_exp)
+            new_term = str(new_koeff) + "*" + symbol + "**" + str(new_exp)
 
             new_array.append(new_term)
 
