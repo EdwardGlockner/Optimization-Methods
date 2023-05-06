@@ -4,8 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QLineEdit, QPushButton
+from PyQt5.QtCore import Qt
 import matplotlib
 matplotlib.use('Qt5Agg')
+from matplotlib.animation import FuncAnimation
+from itertools import count
+from matplotlib.lines import Line2D
 
 
 #---Fixing Path-----------------+
@@ -31,7 +35,8 @@ class MainWindow(QMainWindow):
         self.input_textbox = QLineEdit()
         self.lr_textbox = QLineEdit()
         self.sg_textbox = QLineEdit()
-
+        
+        self.figure_f = None
         self.ax_f = None
         self.ax_d = None
         self.canvas_f = None
@@ -53,12 +58,12 @@ class MainWindow(QMainWindow):
         generate_button.clicked.connect(self.generate_plot)
         
         # Create the plot canvas for the function
-        figure_f = plt.figure(1)
-        self.ax_f = figure_f.add_subplot(1,1,1)
+        self.figure_f = plt.figure(1)
+        self.ax_f = self.figure_f.add_subplot(1,1,1)
         self.ax_f.set_xlabel('X')
         self.ax_f.set_ylabel('Y')
         self.ax_f.set_title("Function")
-        self.canvas_f = FigureCanvas(figure_f)
+        self.canvas_f = FigureCanvas(self.figure_f)
         
         # Create the plot canvas for the derivative
         figure_d = plt.figure(2)
@@ -85,6 +90,9 @@ class MainWindow(QMainWindow):
 
         # Merge the three layouts
         merged_layout = QVBoxLayout()
+        merged_layout.setSpacing(10)  # Adds 10 pixels of spacing between widgets
+        merged_layout.setContentsMargins(30, 30, 30, 30)  # Adds 10 pixels of margins around the layout
+        merged_layout.setAlignment(Qt.AlignCenter)  # Centers the widgets in the layout
         merged_layout.addLayout(input_layout)
         merged_layout.addLayout(lr_layout)
         merged_layout.addLayout(sg_layout)
@@ -111,6 +119,10 @@ class MainWindow(QMainWindow):
 
 
     def generate_plot(self):
+        self.ax_f.clear()
+        self.ax_d.clear()
+        self.canvas_f.draw()
+        self.canvas_d.draw()
         # Get the function string from the input box
         function_str = self.input_textbox.text()
 
@@ -125,20 +137,40 @@ class MainWindow(QMainWindow):
             df = lambda x:  eval(derivative(function_str))
             x_calc, y_calc = Gradient_Descent(guess=float(self.sg_textbox.text()), \
                     learning_rate = float(self.lr_textbox.text()), f=f, df=df)
+            # Create a line object to draw the segments
+            lines = []
+            
             
             # Clear the plot and plot the new function
             self.ax_f.clear()
             self.ax_f.set_title("Function")
             self.ax_f.plot(x, y)
-            self.ax_f.plot(x_calc, y_calc, "--ro")
             self.canvas_f.draw()
-        except:
+            try:
+                animation = FuncAnimation(self.figure_f, self.animate, fargs=(x_calc, y_calc, lines, self.ax_f, self.canvas_f), frames=count())
+                self.canvas_f.draw()
+
+            except Exception as e:
+                for line in lines:
+                    line.remove()
+                # If there is an error, clear the plot and display an error message
+                print(e)
+                self.ax_f.clear()
+                self.ax_f.set_title("Function")
+                self.ax_f.text(0.5, 0.5, "Invalid Function", horizontalalignment='center', verticalalignment='center',
+                             transform=self.ax_f.transAxes)
+                self.canvas_f.draw()
+                return
+
+        except Exception as e:
             # If there is an error, clear the plot and display an error message
+            print(e)
             self.ax_f.clear()
             self.ax_f.set_title("Function")
             self.ax_f.text(0.5, 0.5, "Invalid Function", horizontalalignment='center', verticalalignment='center',
                          transform=self.ax_f.transAxes)
             self.canvas_f.draw()
+            return
         
         try:
             y_d = eval(derivative(function_str))
@@ -152,6 +184,53 @@ class MainWindow(QMainWindow):
             self.ax_d.text(0.5, 0.5, "Invalid Function", horizontalalignment='center', verticalalignment='center',
                            transform=self.ax_d.transAxes)
             self.canvas_d.draw()
+            return
+
+
+    def animate(self,i, x_calc, y_calc, lines, ax_f, canvas_f):
+        if x_calc is None:
+            for line in lines:
+                line.remove()
+
+            ax_f.clear()
+            ax_f.set_title("Function")
+            ax_f.text(0.5, 0.5, "Invalid Function", horizontalalignment='center', verticalalignment='center',
+            transform=ax_f.transAxes)
+            canvas_f.draw()
+            return
+        if i == len(x_calc) - 1:
+            i = 0
+            return 
+
+        if i < len(x_calc):
+            # Plot the next point in x_calc and y_calc
+            x_point = x_calc[i]
+            y_point = y_calc[i]
+            if i > 0:
+                # Add a line between the previous point and the current point
+                x_prev = x_calc[i-1]
+                y_prev = y_calc[i-1]
+                line = Line2D([x_prev, x_point], [y_prev, y_point], color='r')
+                ax_f.add_line(line)
+                lines.append(line)
+            ax_f.plot(x_point, y_point, "--ro")
+        
+        # Return a list of the artists that have been updated
+        return [ax_f, *lines]
+        
+        """
+        except Exception as e:
+            for line in lines:
+                line[0].remove()
+            print("HERE1")
+            self.ax_f.clear()
+            self.ax_f.set_title("Function")
+            self.ax_f.text(0.5, 0.5, "Invalid Function", horizontalalignment='center', verticalalignment='center',
+                 transform=self.ax_f.transAxes)
+            self.canvas_f.draw()
+
+            return [self.ax_f, *lines]
+        """
 
 
 
