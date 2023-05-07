@@ -34,9 +34,11 @@ class MainWindow(QMainWindow):
         self.ax_d = None
         self.canvas_f = None
         self.canvas_d = None
+        self.lines = []
 
         self.main_widget = self.__create_layouts()
         self.setCentralWidget(self.main_widget)
+        self.animation = None
 
 
 
@@ -113,6 +115,8 @@ class MainWindow(QMainWindow):
 
 
     def generate_function_plot(self):
+        self.lines = []
+        self.stop_animation()
         self.ax_f.clear()
         self.canvas_f.draw()
         # Get the function string from the input box
@@ -135,42 +139,43 @@ class MainWindow(QMainWindow):
         # Define the range of x values
         x = np.linspace(x_min, x_max, 1000)
         
+        # Evaluate the input function at each x value
         try:
-            # Evaluate the input function at each x value
             y = eval(function_str)
 
-            f = lambda x: eval(function_str)
-            df = lambda x:  eval(derivative(function_str))
+        except NameError as e:
+              self.ax_f.clear()
+              self.ax_f.set_title("Derivative")
+              self.ax_f.text(0.5, 0.5, "Invalid Function", horizontalalignment='center', verticalalignment='center',
+                                 transform=self.ax_f.transAxes)
+              self.canvas_f.draw()
+              return
+
+        f = lambda x: eval(function_str)
+        df = lambda x:  eval(derivative(function_str))
+        try:
             x_calc, y_calc = Gradient_Descent(guess=float(self.sg_textbox.text()), \
                     learning_rate = float(self.lr_textbox.text()), f=f, df=df)
-            # Create a line object to draw the segments
-            lines = []
-            
-            
-            # Clear the plot and plot the new function
-            self.ax_f.clear()
-            self.ax_f.set_title("Function")
-            self.ax_f.plot(x, y)
-            self.canvas_f.draw()
-            try:
-                animation = FuncAnimation(self.figure_f, self.animate, fargs=(x_calc, y_calc, lines, self.ax_f, self.canvas_f), frames=count())
-                self.canvas_f.draw()
 
-            except Exception as e:
-                for line in lines:
-                    line.remove()
-                # If there is an error, clear the plot and display an error message
-                print(e)
-                self.ax_f.clear()
-                print("HEEEERE")
-                self.ax_f.set_title("Function")
-                self.ax_f.text(0.5, 0.5, "Invalid Function", horizontalalignment='center', verticalalignment='center',
-                             transform=self.ax_f.transAxes)
-                self.canvas_f.draw()
-                return
+        except OverflowError as e:
+            self.ax_f.clear()
+            self.ax_f.set_title("Derivative")
+            self.ax_f.text(0.5, 0.5, "OverflowError. Try decreasing the learning rate.", horizontalalignment='center', verticalalignment='center',
+                           transform=self.ax_f.transAxes)
+            self.canvas_f.draw()
+            return
+
+        # Create a line object to draw the segments
+        # Clear the plot and plot the new function
+        self.ax_f.clear()
+        self.ax_f.set_title("Function")
+        self.ax_f.plot(x, y)
+        self.canvas_f.draw()
+
+        try:
+            self.start_animation(x_calc, y_calc)
 
         except Exception as e:
-            print("HERE")
             # If there is an error, clear the plot and display an error message
             print(e)
             self.ax_f.clear()
@@ -178,8 +183,17 @@ class MainWindow(QMainWindow):
             self.ax_f.text(0.5, 0.5, "Invalid Function", horizontalalignment='center', verticalalignment='center',
                          transform=self.ax_f.transAxes)
             self.canvas_f.draw()
-            return
-        
+
+
+    def start_animation(self, x_calc, y_calc):
+        self.animation = FuncAnimation(self.figure_f, self.animate, fargs=(x_calc, y_calc, self.ax_f, self.canvas_f), frames=count())
+        self.canvas_f.draw()
+
+
+    def stop_animation(self):
+        if self.animation is not None:
+            self.animation.event_source.stop()
+
 
     def generate_derivative_plot(self):
         self.ax_d.clear()
@@ -211,6 +225,7 @@ class MainWindow(QMainWindow):
             self.ax_d.set_title("Derivative")
             self.ax_d.plot(x,y_d)
             self.canvas_d.draw()
+
         except:
             self.ax_d.clear()
             self.ax_d.set_title("Derivative")
@@ -220,17 +235,8 @@ class MainWindow(QMainWindow):
             return
 
 
-    def animate(self,i, x_calc, y_calc, lines, ax_f, canvas_f):
-        if x_calc is None:
-            for line in lines:
-                line.remove()
-
-            ax_f.clear()
-            ax_f.set_title("Function")
-            ax_f.text(0.5, 0.5, "Invalid Function", horizontalalignment='center', verticalalignment='center',
-            transform=ax_f.transAxes)
-            canvas_f.draw()
-            return
+    def animate(self,i, x_calc, y_calc, ax_f, canvas_f):
+        print(len(self.lines))
         if i == len(x_calc) - 1:
             i = 0
             return 
@@ -245,9 +251,9 @@ class MainWindow(QMainWindow):
                 y_prev = y_calc[i-1]
                 line = Line2D([x_prev, x_point], [y_prev, y_point], color='r')
                 ax_f.add_line(line)
-                lines.append(line)
+                self.lines.append(line)
             ax_f.plot(x_point, y_point, "--ro")
         
         # Return a list of the artists that have been updated
-        return [ax_f, *lines]
+        return [ax_f, *self.lines]
         

@@ -43,17 +43,8 @@ def Gradient_Descent(guess, learning_rate, f, df, tolerance=1e-3, max_iters = 10
     for _ in range(max_iters):
         # Save the calculated values
         x_calc.append(x_new)
-        try:
-            y_calc.append(f(x_new))
-        except OverflowError as e:
-            print("OverflowError when calculating function value at new x step. Try decreasing the learning rate")
-            return None, None
-        # Take new step
-        try:
-            step = -learning_rate * df(x_new)
-        except OverflowError as e:
-            print("OverflowError when calculating derivate evaluated at new x step. Try decreasing the learning rate")
-            return None, None 
+        y_calc.append(f(x_new))
+        step = -learning_rate * df(x_new)
                 
         if np.abs(step) < tolerance:
             break
