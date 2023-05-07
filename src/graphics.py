@@ -12,13 +12,6 @@ from itertools import count
 from matplotlib.lines import Line2D
 
 
-#---Fixing Path-----------------+
-sys.path.append(str(sys.path[0][:-14]))
-dirname = os.getcwd()
-dirname = dirname.replace("src/", "")
-sys.path.insert(1, os.path.join(dirname, "src/methods"))
-
-
 #---Local Imports---------------+
 from optimization.GD import Gradient_Descent
 from optimization.SGD import Stoch_Gradient_Descent
@@ -55,7 +48,8 @@ class MainWindow(QMainWindow):
 
         # Create the generate button
         generate_button = QPushButton("Generate")
-        generate_button.clicked.connect(self.generate_plot)
+        generate_button.clicked.connect(self.generate_function_plot)
+        generate_button.clicked.connect(self.generate_derivative_plot)
         
         # Create the plot canvas for the function
         self.figure_f = plt.figure(1)
@@ -118,17 +112,29 @@ class MainWindow(QMainWindow):
         return eval(derivative(equation))
 
 
-    def generate_plot(self):
+    def generate_function_plot(self):
         self.ax_f.clear()
-        self.ax_d.clear()
         self.canvas_f.draw()
-        self.canvas_d.draw()
         # Get the function string from the input box
         function_str = self.input_textbox.text()
+        x_val = self.sg_textbox.text()
+        x_val = float(x_val)
+
+        if x_val < 0:
+            x_min = x_val - 3
+            x_max = -1 * x_val +3
+
+        elif x_val >0:
+            x_min = -1 * x_val -3
+            x_max = x_val + 3
+
+        else:
+            x_min = -15
+            x_max = 15
 
         # Define the range of x values
-        x = np.linspace(-15, 15, 1000)
-
+        x = np.linspace(x_min, x_max, 1000)
+        
         try:
             # Evaluate the input function at each x value
             y = eval(function_str)
@@ -156,6 +162,7 @@ class MainWindow(QMainWindow):
                 # If there is an error, clear the plot and display an error message
                 print(e)
                 self.ax_f.clear()
+                print("HEEEERE")
                 self.ax_f.set_title("Function")
                 self.ax_f.text(0.5, 0.5, "Invalid Function", horizontalalignment='center', verticalalignment='center',
                              transform=self.ax_f.transAxes)
@@ -163,6 +170,7 @@ class MainWindow(QMainWindow):
                 return
 
         except Exception as e:
+            print("HERE")
             # If there is an error, clear the plot and display an error message
             print(e)
             self.ax_f.clear()
@@ -172,6 +180,31 @@ class MainWindow(QMainWindow):
             self.canvas_f.draw()
             return
         
+
+    def generate_derivative_plot(self):
+        self.ax_d.clear()
+        self.canvas_d.draw()
+        # Get the function string from the input box
+        function_str = self.input_textbox.text()
+        
+        x_val = self.sg_textbox.text()
+        x_val = float(x_val)
+
+        if x_val < 0:
+            x_min = x_val - 3
+            x_max = -1 * x_val +3
+
+        elif x_val >0:
+            x_min = -1 * x_val -3
+            x_max = x_val + 3
+
+        else:
+            x_min = -15
+            x_max = 15
+
+        # Define the range of x values
+        x = np.linspace(x_min, x_max, 1000)
+
         try:
             y_d = eval(derivative(function_str))
             self.ax_d.clear()
@@ -218,34 +251,3 @@ class MainWindow(QMainWindow):
         # Return a list of the artists that have been updated
         return [ax_f, *lines]
         
-        """
-        except Exception as e:
-            for line in lines:
-                line[0].remove()
-            print("HERE1")
-            self.ax_f.clear()
-            self.ax_f.set_title("Function")
-            self.ax_f.text(0.5, 0.5, "Invalid Function", horizontalalignment='center', verticalalignment='center',
-                 transform=self.ax_f.transAxes)
-            self.canvas_f.draw()
-
-            return [self.ax_f, *lines]
-        """
-
-
-
-# Get the domain of the function
-def get_function_domain(function):
-    # Parse the function to get the variable name
-    var_name = function.split('=')[0].strip()
-
-    # Evaluate the function for a range of x values
-    x_values = np.linspace(-10, 10, 1000)
-    y_values = np.array([eval(function) for x in x_values])
-
-    # Find the first and last non-NaN values
-    idx_min = np.argmax(np.isfinite(y_values))
-    idx_max = len(y_values) - np.argmax(np.isfinite(y_values[::-1])) - 1
-
-    # Return the domain of the function
-    return x_values[idx_min], x_values[idx_max]
