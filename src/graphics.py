@@ -43,6 +43,9 @@ class MainWindow(QMainWindow):
 
 
     def __create_layouts(self):
+        """
+
+        """
         # Create label and textbox for function, learning rate and start guess input
         input_label = QLabel("Function:")
         lr_label = QLabel("Learning Rate:")
@@ -106,15 +109,10 @@ class MainWindow(QMainWindow):
         return main_widget
  
 
-    def f(self, equation):
-        return eval(equation)
-
-
-    def df(self, equation):
-        return eval(derivative(equation))
-
-
     def generate_function_plot(self):
+        """
+
+        """
         self.lines = []
         self.stop_animation()
         self.ax_f.clear()
@@ -142,24 +140,25 @@ class MainWindow(QMainWindow):
         # Evaluate the input function at each x value
         try:
             y = eval(function_str)
+            f = lambda x: eval(function_str)
+            df = lambda x:  eval(derivative(function_str))
 
-        except NameError as e:
+        except (NameError, SyntaxError) as e:
+              print(e)
               self.ax_f.clear()
-              self.ax_f.set_title("Derivative")
+              self.ax_f.set_title("Function")
               self.ax_f.text(0.5, 0.5, "Invalid Function", horizontalalignment='center', verticalalignment='center',
                                  transform=self.ax_f.transAxes)
               self.canvas_f.draw()
               return
-
-        f = lambda x: eval(function_str)
-        df = lambda x:  eval(derivative(function_str))
+        
         try:
             x_calc, y_calc = Gradient_Descent(guess=float(self.sg_textbox.text()), \
                     learning_rate = float(self.lr_textbox.text()), f=f, df=df)
 
         except OverflowError as e:
             self.ax_f.clear()
-            self.ax_f.set_title("Derivative")
+            self.ax_f.set_title("Function")
             self.ax_f.text(0.5, 0.5, "OverflowError. Try decreasing the learning rate.", horizontalalignment='center', verticalalignment='center',
                            transform=self.ax_f.transAxes)
             self.canvas_f.draw()
@@ -172,30 +171,29 @@ class MainWindow(QMainWindow):
         self.ax_f.plot(x, y)
         self.canvas_f.draw()
 
-        try:
-            self.start_animation(x_calc, y_calc)
-
-        except Exception as e:
-            # If there is an error, clear the plot and display an error message
-            print(e)
-            self.ax_f.clear()
-            self.ax_f.set_title("Function")
-            self.ax_f.text(0.5, 0.5, "Invalid Function", horizontalalignment='center', verticalalignment='center',
-                         transform=self.ax_f.transAxes)
-            self.canvas_f.draw()
+        self.start_animation(x_calc, y_calc)
 
 
     def start_animation(self, x_calc, y_calc):
-        self.animation = FuncAnimation(self.figure_f, self.animate, fargs=(x_calc, y_calc, self.ax_f, self.canvas_f), frames=count())
+        """
+
+        """
+        self.animation = FuncAnimation(self.figure_f, self.animate, fargs=(x_calc, y_calc), frames=count())
         self.canvas_f.draw()
 
 
     def stop_animation(self):
+        """
+
+        """
         if self.animation is not None:
             self.animation.event_source.stop()
 
 
     def generate_derivative_plot(self):
+        """
+
+        """
         self.ax_d.clear()
         self.canvas_d.draw()
         # Get the function string from the input box
@@ -235,8 +233,10 @@ class MainWindow(QMainWindow):
             return
 
 
-    def animate(self,i, x_calc, y_calc, ax_f, canvas_f):
-        print(len(self.lines))
+    def animate(self,i, x_calc, y_calc):
+        """
+
+        """
         if i == len(x_calc) - 1:
             i = 0
             return 
@@ -250,10 +250,9 @@ class MainWindow(QMainWindow):
                 x_prev = x_calc[i-1]
                 y_prev = y_calc[i-1]
                 line = Line2D([x_prev, x_point], [y_prev, y_point], color='r')
-                ax_f.add_line(line)
+                self.ax_f.add_line(line)
                 self.lines.append(line)
-            ax_f.plot(x_point, y_point, "--ro")
+            self.ax_f.plot(x_point, y_point, "--ro")
         
         # Return a list of the artists that have been updated
-        return [ax_f, *self.lines]
         
