@@ -30,6 +30,7 @@ def Gradient_Descent(guess, learning_rate, f, df, tolerance=1e-3, max_iters = 10
         raise ValueError("Learning rate 'learning_rate' must be larger than zero")
 
     max_iters = int(max_iters)
+
     if max_iters <= 0:
         raise ValueError("Max iterations 'max_iters' must be larger than zero")
 
@@ -48,6 +49,7 @@ def Gradient_Descent(guess, learning_rate, f, df, tolerance=1e-3, max_iters = 10
                 
         if np.abs(step) < tolerance:
             break
+
         x_new += step
 
     return x_calc, y_calc

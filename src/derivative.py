@@ -1,3 +1,5 @@
+import re
+# 4 * x**3 - 10 * x - 3
 def derivative(func, symbol="x"):
     """
     
@@ -8,10 +10,9 @@ def derivative(func, symbol="x"):
         derv_func:
     """
     func = func.replace(" ", "")
-    array = func.split("+")
+    array = re.split(r"[+-]", func) # split on + or -
     new_array = []
     for term in array:
-        
         idx_mult = term.find("*")
         if idx_mult != -1:
             if term[idx_mult-1] == "*" or term[idx_mult+1] == "*":
