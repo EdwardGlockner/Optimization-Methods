@@ -1,9 +1,7 @@
-import sys
-import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QLineEdit, QPushButton, QComboBox
 from PyQt5.QtCore import Qt
 import matplotlib
 matplotlib.use('Qt5Agg')
@@ -28,6 +26,7 @@ class MainWindow(QMainWindow):
         self.input_textbox = QLineEdit()
         self.lr_textbox = QLineEdit()
         self.sg_textbox = QLineEdit()
+        self.combo_box = QComboBox()
         
         self.figure_f = None
         self.ax_f = None
@@ -47,9 +46,14 @@ class MainWindow(QMainWindow):
 
         """
         # Create label and textbox for function, learning rate and start guess input
+        text_title = QLabel("OPTIMIZATION PARAMETERS")
         input_label = QLabel("Function:")
         lr_label = QLabel("Learning Rate:")
         sg_label = QLabel("Starting Guess:")
+        self.combo_box.addItem("Gradient Descent")
+        self.combo_box.addItem("Stochastic Gradient Descent")
+        self.combo_box.currentIndexChanged.connect(self.on_combobox_changed)
+
 
         # Create the generate button
         generate_button = QPushButton("Generate")
@@ -72,6 +76,9 @@ class MainWindow(QMainWindow):
         self.ax_d.set_title("Derivative")
         self.canvas_d = FigureCanvas(figure_d)
 
+    
+        title_layout = QHBoxLayout()
+        title_layout.addWidget(text_title)
         # Create the layout for the input widget
         input_layout = QHBoxLayout()
         input_layout.addWidget(input_label)
@@ -92,9 +99,11 @@ class MainWindow(QMainWindow):
         merged_layout.setSpacing(10)  # Adds 10 pixels of spacing between widgets
         merged_layout.setContentsMargins(30, 30, 30, 30)  # Adds 10 pixels of margins around the layout
         merged_layout.setAlignment(Qt.AlignCenter)  # Centers the widgets in the layout
+        merged_layout.addLayout(title_layout)
         merged_layout.addLayout(input_layout)
         merged_layout.addLayout(lr_layout)
         merged_layout.addLayout(sg_layout)
+        merged_layout.addWidget(self.combo_box)
         merged_layout.addWidget(generate_button)
 
         # Create the main layout and add the widgets
@@ -107,12 +116,42 @@ class MainWindow(QMainWindow):
         main_widget.setLayout(main_layout)
 
         return main_widget
+
+    def on_combobox_changed(self, index):
+        selected_text = self.combo_box.currentText()
+        selected_index = self.combo_box.currentIndex()
+        print(f"Selected item: {selected_text} (index {selected_index})")
  
 
     def generate_function_plot(self):
         """
 
         """
+        #selected_text = self.combo_box.currentText() for later
+        try:
+            temp_lr = float(self.lr_textbox.text())
+
+        except ValueError as e:
+              print(e)
+              self.ax_f.clear()
+              self.ax_f.set_title("Function")
+              self.ax_f.text(0.5, 0.5, "Invalid learning rate", horizontalalignment='center', verticalalignment='center',
+                                 transform=self.ax_f.transAxes)
+              self.canvas_f.draw()
+              return
+
+        try:
+            temp_guess = float(self.sg_textbox.text())
+
+        except ValueError as e:
+              print(e)
+              self.ax_f.clear()
+              self.ax_f.set_title("Function")
+              self.ax_f.text(0.5, 0.5, "Invalid starting guess", horizontalalignment='center', verticalalignment='center',
+                                 transform=self.ax_f.transAxes)
+              self.canvas_f.draw()
+              return
+
         self.lines = []
         self.stop_animation()
         self.ax_f.clear()
@@ -194,6 +233,31 @@ class MainWindow(QMainWindow):
         """
 
         """
+        try:
+            temp_lr = float(self.lr_textbox.text())
+
+        except ValueError as e:
+              print(e)
+              self.ax_f.clear()
+              self.ax_f.set_title("Function")
+              self.ax_f.text(0.5, 0.5, "Invalid learning rate", horizontalalignment='center', verticalalignment='center',
+                                 transform=self.ax_f.transAxes)
+              self.canvas_f.draw()
+              return
+
+        try:
+            temp_guess = float(self.sg_textbox.text())
+
+        except ValueError as e:
+              print(e)
+              self.ax_f.clear()
+              self.ax_f.set_title("Function")
+              self.ax_f.text(0.5, 0.5, "Invalid starting guess", horizontalalignment='center', verticalalignment='center',
+                                 transform=self.ax_f.transAxes)
+              self.canvas_f.draw()
+              return
+
+
         self.ax_d.clear()
         self.canvas_d.draw()
         # Get the function string from the input box
@@ -253,6 +317,4 @@ class MainWindow(QMainWindow):
                 self.ax_f.add_line(line)
                 self.lines.append(line)
             self.ax_f.plot(x_point, y_point, "--ro")
-        
-        # Return a list of the artists that have been updated
         
